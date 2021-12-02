@@ -1,0 +1,43 @@
+﻿@model WebWallet.Models.WalletModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create your Wallet</h1>
+<hr />
+<div class="mb-3">
+    <div class="mb-3">
+        <form asp-action="CreateW" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="mb-3">
+                <label asp-for="UserFName" class="control-label">User First Name</label>
+                <input asp-for="UserFName" class="form-control" />
+                <span asp-validation-for="UserFName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="UserLName" class="control-label">User Last Name</label>
+                <input asp-for="UserLName" class="form-control" />
+                <span asp-validation-for="UserLName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="WalletName" class="control-label">Wallet Name</label>
+                <input asp-for="WalletName" class="form-control" />
+                <span asp-validation-for="WalletName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="PassPhrase" class="control-label">Add something that only you know it, but be careful if you forget it,you will lose your wallet</label>
+                <input asp-for="PassPhrase" class="form-control" />
+                <span asp-validation-for="PassPhrase" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Create" class="btn btn-success btn-block" />
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,31 @@
+﻿@model WebWallet.Models.WalletModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+
+<div>
+    <h4>Wallet</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.UserFName)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.UserFName)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.UserLName)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.UserLName)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.WalletName)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.WalletName)
+        </dd>
+    </dl>
+</div>
