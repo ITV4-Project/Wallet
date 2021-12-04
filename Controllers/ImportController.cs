@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Web.Helpers;
+using System.Security.Cryptography;
+using System.Text;
 using WebWallet.Models;
 
 namespace WebWallet.Controllers
@@ -24,30 +25,39 @@ namespace WebWallet.Controllers
             return View();
         }
 
-        [HttpPost]
         public ActionResult ImportW(ImportWalletModel wallet)
         {
             var hash = Hash(wallet.PassWallet);
-            
+            List<WalletModel> wallets = new List<WalletModel>();
+
+
             using (var db = new ContextDB())
             {
-                //Not wordking good //Todo
-                var v = db.Wallets.Where(a => a.PassPhrase.Equals(hash));
-                if (v != null)
+
+                wallets = db.Wallets.Select(a => a).Where(a => a.PassPhrase.Equals(hash)).ToList();
+                if (wallets != null)
                 {
-                    return RedirectToAction("Details", v);
+                    TempData["wallets"] = wallets;
+                    return View("Details");
                 }
 
             }
 
-            //Index is voor testing empty View
+
+
             return View("Index");
         }
         private string Hash(String hash)
         {
-            return Crypto.HashPassword(hash);
+            //One way hash using SHA-256
+            using var sha = SHA256.Create();
+            var asBytes = Encoding.Default.GetBytes(hash);
+            var hashed = sha.ComputeHash(asBytes);
+            return Convert.ToBase64String(hashed);
+
 
         }
+
 
 
 
