@@ -5,30 +5,33 @@
 }
 
 
-@if (wallets != null && wallets.Count>=1){
-<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">First</th>
-      <th scope="col">Last</th>
-      <th scope="col">Wallet</th>
-    </tr>
-  </thead>
-  <tbody>
-@foreach(var wallet in wallets)
+<div class="container">
+    
+@if (wallets != null && wallets.Count >= 1)
 {
-    <tr>
-      <td>@wallet.UserFName</td>
-      <td>@wallet.UserLName</td>
-      <td>@wallet.WalletName</td>
-    </tr>
-  
-}
-  </tbody>
-</table>
-}
-<div>
-    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
-    <a asp-action="Index">Back to List</a>
+    <div class="d-grid gap-2 col-6 mx-auto">
+        @foreach (var wallet in wallets)
+        {
+
+            <h1 class="text-center">@wallet.WalletName</h1>
+            <hr />
+            <h3 class="text-center">Balance</h3>
+            <h6 class="text-center">100.00</h6>
+
+        }
+            <br/> 
+            <br/>
+            
+        <button type="button" class="btn btn-success">Send</button>
+        <button type="button" class="btn btn-success">Receive</button>
+ 
+ 
+ </div>
+
+        
+
+       
+ }
 </div>
+ 
 
