@@ -1,104 +1,59 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.IO;
+using System.Security.Cryptography;
 using System.Text;
-using static System.Console;
-public class Sender
+
+class Alice
 {
-    public static byte[] SenderPublicKey;
-
-    static void Main(string[] args)
+    public static void Main(string[] args)
     {
-        Write("Enter message to be encrypted: ");
-        string message  = ReadLine();
+        Bob bob = new Bob();
+        Trudy trudy = new Trudy();
 
-        using (ECDiffieHellmanCng ecd = new ECDiffieHellmanCng())
+        using (ECDsaCng dsa = new ECDsaCng(CngKey.Create(CngAlgorithm.ECDsaP256)))
         {
-            ecd.KeyDerivationFunction = ECDiffieHellmanKeyDerivationFunction.Hash;
-            ecd.HashAlgorithm = CngAlgorithm.Sha256;
-            SenderPublicKey = ecd.PublicKey.ToByteArray();
+            dsa.HashAlgorithm = CngAlgorithm.Sha256;
+            bob.key = dsa.Key.Export(CngKeyBlobFormat.EccPublicBlob);
 
-            Receiver receiver = new Receiver();
+            byte[] data = new byte[] { 21, 5, 8, 12, 207 };
 
-            CngKey key = CngKey.Import(receiver.ReceiverPublicKey, CngKeyBlobFormat.EccPublicBlob);
-            byte[] senderKey = ecd.DeriveKeyMaterial(CngKey.Import(receiver.ReceiverPublicKey, CngKeyBlobFormat.EccPublicBlob));
-            Send(senderKey, message, out byte[] encryptedMessage, out byte[] IV);
-            
-            receiver.Receive(encryptedMessage, IV);
-         }
+            byte[] signature = dsa.SignData(data);
+
+            bob.Receive(data, signature);
+            trudy.Receive(data, signature);
+        }
     }
+}
+public class Bob
+{
+    public byte[] key;
 
-    public static void Send(byte[] key, string secretMessage, out byte[] encryptedMessage, out byte[] IV)
+    public void Receive(byte[] data, byte[] signature)
     {
-        WriteLine(Environment.NewLine + "Sending message...");
-
-        using (Aes aes = new AesCryptoServiceProvider())
+        using (ECDsaCng ecsdKey = new ECDsaCng(CngKey.Import(key, CngKeyBlobFormat.EccPublicBlob)))
         {
-            aes.Key = key;
-            IV = aes.IV;
-
-            // Encrypting message
-            using (MemoryStream ms = new MemoryStream())
-            using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
-            {
-                byte[] plainTextMessage = Encoding.UTF8.GetBytes(secretMessage);
-                cs.Write(plainTextMessage, 0, plainTextMessage.Length);
-                cs.Close();
-                encryptedMessage = ms.ToArray();
-            }
+            Console.Write(this.GetType().Name);
+            if (ecsdKey.VerifyData(data, signature))
+                Console.WriteLine(" data is good");
+            else
+                Console.WriteLine(" data is bad");
         }
     }
 }
 
-public class Receiver
+public class Trudy
 {
-    public byte[] ReceiverPublicKey;
-    private byte[] Key;
+    public byte[] key;
 
-    public Receiver()
+    public void Receive(byte[] data, byte[] signature)
     {
-        using (ECDiffieHellmanCng ecd = new ECDiffieHellmanCng())
+        using (ECDsaCng ecsdKey = new ECDsaCng(CngKey.Create(CngAlgorithm.ECDsaP256)))
         {
-            ecd.KeyDerivationFunction = ECDiffieHellmanKeyDerivationFunction.Hash;
-            ecd.HashAlgorithm = CngAlgorithm.Sha256;
-            ReceiverPublicKey = ecd.PublicKey.ToByteArray();
-            Key = ecd.DeriveKeyMaterial(CngKey.Import(Sender.SenderPublicKey, CngKeyBlobFormat.EccPublicBlob));
-
-        }
-
-        WriteLine(Environment.NewLine + "Encrypted message: " + Environment.NewLine);
-
-        foreach (byte b in Key)
-        {
-            Write($"{b}, ");
-        }
-    }
-
-    public void Receive (byte[] encryptedMessage, byte[] IV)
-    {
-        WriteLine("Receiving message: ");
-
-        using (Aes aes = new AesCryptoServiceProvider())
-        {
-            aes.Key = Key;
-            aes.IV = IV;
-
-            // Decrypt and show message
-            using (MemoryStream ms = new MemoryStream())
-            {
-                using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Write))
-                {
-                    cs.Write(encryptedMessage, 0, encryptedMessage.Length);
-                    cs.Close();
-
-                    string message = Encoding.UTF8.GetString(ms.ToArray());
-                    WriteLine(Environment.NewLine + "Decrypted message: ");
-                    WriteLine(Environment.NewLine + message + Environment.NewLine);
-                }
-            }
-
-            WriteLine(Environment.NewLine + "Press any key to close");
-            ReadKey();
-
+            Console.Write(this.GetType().Name);
+            if (ecsdKey.VerifyData(data, signature))
+                Console.WriteLine(" data is good");
+            else
+                Console.WriteLine(" data is bad");
         }
     }
 }
-
