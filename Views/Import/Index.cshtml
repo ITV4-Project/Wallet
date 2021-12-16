@@ -1,5 +1,61 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model WebWallet.Models.TransactionModel;
+
+
+
+@using WebWallet.Controllers
+@using WebWallet.Models
 @{
+
+    List<WalletModel> wallets = TempData["wallets"]as List<WalletModel>;
 }
+
+
+
+<div class="container">
+    
+        <div class="d-grid gap-2 col-6 mx-auto">
+            <form asp-action="Generate" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+           
+                <h1 class="text-center">Wallet Transaction </h1>
+                <hr />
+            <label class="control-label">senderPublicKey</label>
+            <input asp-for="senderPublicKey" class="form-control" />
+            <span asp-validation-for="senderPublicKey" class="text-danger"></span>
+
+             <label class="control-label">recieverPublicKey</label>
+            <input asp-for="recieverPublicKey" class="form-control" />
+            <span asp-validation-for="recieverPublicKey" class="text-danger"></span>
+           
+           
+            <label class="control-label">Amount</label>
+            <input asp-for="Amount" class="form-control" />
+            <span asp-validation-for="Amount" class="text-danger"></span>
+
+            <label class="control-label">Valid for</label>
+            <input asp-for="Date" class="form-control" />
+            <span asp-validation-for="Date" class="text-danger"></span>
+
+            <br />
+            <br />
+            @using (Html.BeginForm("Import/CreateTransaction"))
+            {
+                <div class="d-grid gap-2 col-6 mx-auto">
+                    <button class="btn btn-success" formaction="CreateTransaction" type="submit">Generate</button>
+                </div>
+            }
+
+        </form>
+        </div>
+        
+        </div>
+    
+
+ 
+
+
+
+
+ 
+
+

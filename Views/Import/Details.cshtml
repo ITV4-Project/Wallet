@@ -22,8 +22,12 @@
             <br/> 
             <br/>
             
-        <button type="button" class="btn btn-success">Send</button>
-        <button type="button" class="btn btn-success">Receive</button>
+        @using (Html.BeginForm("Import")){
+        <div class="d-grid gap-2 col-6 mx-auto">
+        <button class="btn btn-success" formaction="Send" type="submit">Send</button>
+        <button class="btn btn-success" formaction="Receive" type="submit">Rescive</button>
+        </div>
+        }
  
  
  </div>

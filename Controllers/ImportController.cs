@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
 using WebWallet.Models;
@@ -60,7 +61,37 @@ namespace WebWallet.Controllers
 
 
 
+        public ActionResult Send()
+        {
+            return View("Index");
 
+        }
+
+        public ActionResult Receive()
+        {
+            return View("Index");
+        }
+
+        public void CreateTransaction(TransactionModel transaction)
+        {
+            var transcation = new TransactionModel
+            {
+                version = 1,
+                previousHash = Hash("Een"),
+                senderPublicKey = transaction.senderPublicKey,
+                recieverPublicKey = transaction.recieverPublicKey,
+                delegates = false,
+                Amount = transaction.Amount,
+                Date = transaction.Date,
+
+            };
+
+            var startTime = DateTime.Now;
+            Console.WriteLine(JsonConvert.SerializeObject(transaction, Formatting.Indented));
+            var endTime = DateTime.Now;
+            Console.WriteLine($"Duration: {endTime - startTime}");
+
+        }
 
 
 
