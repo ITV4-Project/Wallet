@@ -15,7 +15,7 @@ namespace WebWallet.Controllers
         }
 
         // GET: ImportController/Details/5
-        public ActionResult Details(int id)
+        public ActionResult Details()
         {
             return View();
         }
@@ -26,25 +26,33 @@ namespace WebWallet.Controllers
             return View();
         }
 
-        public ActionResult ImportW(ImportWalletModel wallet)
+        public ActionResult ImportW(ImportWalletModel importedWallet)
         {
-            var hash = Hash(wallet.PassWallet);
-            List<WalletModel> wallets = new List<WalletModel>();
+            var hash = Hash(importedWallet.PassWallet);
+          
 
 
             using (var db = new ContextDB())
             {
 
-                wallets = db.Wallets.Select(a => a).Where(a => a.PassPhrase.Equals(hash)).ToList();
+                var wallets = db.Wallets.Select(a => a).Where(a => a.PassPhrase.Equals(hash)).ToList();
+
                 if (wallets != null)
                 {
-                    TempData["wallets"] = wallets;
+                    foreach (var wallet in wallets)
+                    {
+                        TempData["wallet"] = wallet.WalletName;
+                        TempData["Balance"] = wallet.Balance;
+                        TempData["key"] = wallet.PublicKey;
+
+                    }
+
+
                     return View("Details");
+
+
                 }
-
             }
-
-
 
             return View("Index");
         }
@@ -61,7 +69,7 @@ namespace WebWallet.Controllers
 
 
 
-        public ActionResult Send()
+        public ActionResult Send(ImportWalletModel importWallet)
         {
             return View("Index");
 
@@ -85,7 +93,33 @@ namespace WebWallet.Controllers
                 Date = transaction.Date,
 
             };
+            using (var db = new ContextDB())
+            {
+                //update wallet balance for sender
+                var balanceSender = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.senderPublicKey));
+                if (balanceSender != null)
+                {
+                    foreach (var item in balanceSender)
+                    {
+                        WalletModel wallet = db.Wallets.Find(item.Id);
+                        wallet.Balance = wallet.Balance - transaction.Amount;
+                    }
+                    db.SaveChanges();
 
+                }
+                // update wallet balance for reciver 
+                var balanceReciever = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.recieverPublicKey));
+                if (balanceReciever != null)
+                {
+                    foreach (var item in balanceReciever)
+                    {
+                        WalletModel wallet = db.Wallets.Find(item.Id);
+                        wallet.Balance = wallet.Balance + transaction.Amount;
+                    }
+                    db.SaveChanges();
+
+                }
+            }
             var startTime = DateTime.Now;
             Console.WriteLine(JsonConvert.SerializeObject(transaction, Formatting.Indented));
             var endTime = DateTime.Now;
