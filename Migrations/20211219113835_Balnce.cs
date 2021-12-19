@@ -4,10 +4,17 @@
 
 namespace WebWallet.Migrations
 {
-    public partial class New : Migration
+    public partial class Balnce : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<int>(
+                name: "Balance",
+                table: "Wallets",
+                type: "INTEGER",
+                nullable: false,
+                defaultValue: 0);
+
             migrationBuilder.AddColumn<string>(
                 name: "PublicKey",
                 table: "Wallets",
@@ -18,6 +25,10 @@ namespace WebWallet.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "Balance",
+                table: "Wallets");
+
             migrationBuilder.DropColumn(
                 name: "PublicKey",
                 table: "Wallets");

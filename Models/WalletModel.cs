@@ -19,6 +19,7 @@ namespace WebWallet.Models
         public string PassPhrase { get; set; }
 
         public String PublicKey { get; set; }
+        public int Balance { get; set; }
         public WalletModel()
         {
 

@@ -10,6 +10,6 @@ namespace WebWallet.Models
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
-                 => options.UseSqlite(@"Data Source = D:\University books\Jaar4\project4\WebWallet\Data\Wallets.db");
+                 => options.UseSqlite(@"Data Source = C:\Users\Lenovo\Source\Repos\Wallet\Data\Wallets.db");
     }
 }

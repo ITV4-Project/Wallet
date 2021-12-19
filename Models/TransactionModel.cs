@@ -2,7 +2,6 @@
 {
     public class TransactionModel
     {
-        public WalletModel Wallet { get; set; }
 
         public int version;
         public string previousHash { get; set; }

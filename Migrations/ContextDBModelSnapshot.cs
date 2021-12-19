@@ -22,6 +22,9 @@ namespace WebWallet.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Balance")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("PassPhrase")
                         .IsRequired()
                         .HasColumnType("TEXT");

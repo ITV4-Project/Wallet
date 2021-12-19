@@ -10,8 +10,8 @@ using WebWallet.Models;
 namespace WebWallet.Migrations
 {
     [DbContext(typeof(ContextDB))]
-    [Migration("20211216081944_New")]
-    partial class New
+    [Migration("20211219113835_Balnce")]
+    partial class Balnce
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -22,6 +22,9 @@ namespace WebWallet.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Balance")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("PassPhrase")
