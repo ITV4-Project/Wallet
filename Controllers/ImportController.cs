@@ -80,6 +80,7 @@ namespace WebWallet.Controllers
             return View("Index");
         }
 
+        //create transaction
         public void CreateTransaction(TransactionModel transaction)
         {
             var transcation = new TransactionModel
@@ -91,6 +92,7 @@ namespace WebWallet.Controllers
                 delegates = false,
                 Amount = transaction.Amount,
                 Date = transaction.Date,
+
 
             };
             using (var db = new ContextDB())

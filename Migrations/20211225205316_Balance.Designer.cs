@@ -10,8 +10,8 @@ using WebWallet.Models;
 namespace WebWallet.Migrations
 {
     [DbContext(typeof(ContextDB))]
-    [Migration("20211219113835_Balnce")]
-    partial class Balnce
+    [Migration("20211225205316_Balance")]
+    partial class Balance
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

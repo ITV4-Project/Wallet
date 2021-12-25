@@ -4,7 +4,7 @@
 
 namespace WebWallet.Migrations
 {
-    public partial class Balnce : Migration
+    public partial class Balance : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -14,6 +14,7 @@ namespace WebWallet.Migrations
                 type: "INTEGER",
                 nullable: false,
                 defaultValue: 0);
+
 
             migrationBuilder.AddColumn<string>(
                 name: "PublicKey",
