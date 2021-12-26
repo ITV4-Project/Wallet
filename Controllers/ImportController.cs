@@ -14,6 +14,13 @@ namespace WebWallet.Controllers
             return View();
         }
 
+        // GET: ImportController
+        public ActionResult Transcation()
+        {
+            return View();
+        }
+
+
         // GET: ImportController/Details/5
         public ActionResult Details()
         {
@@ -54,7 +61,7 @@ namespace WebWallet.Controllers
                 }
             }
 
-            return View("Index");
+            return View("Import");
         }
         private string Hash(String hash)
         {
@@ -71,34 +78,35 @@ namespace WebWallet.Controllers
 
         public ActionResult Send(ImportWalletModel importWallet)
         {
-            return View("Index");
+            return View("Transaction");
 
         }
 
         public ActionResult Receive()
         {
-            return View("Index");
+            //to do add QR code view
+            return View();
         }
 
         //create transaction
-        public void CreateTransaction(TransactionModel transaction)
+        public ActionResult CreateTransaction(TransactionModel transaction)
         {
             var transcation = new TransactionModel
             {
-                version = 1,
-                previousHash = Hash("Een"),
-                senderPublicKey = transaction.senderPublicKey,
-                recieverPublicKey = transaction.recieverPublicKey,
-                delegates = false,
+                Version = 1,
+                MerkleHash = null,
+                Input = transaction.Input,
+                Output = transaction.Output,
+                Delegate = false,
                 Amount = transaction.Amount,
-                Date = transaction.Date,
+                CreationDate = transaction.CreationDate,
 
 
             };
             using (var db = new ContextDB())
             {
                 //update wallet balance for sender
-                var balanceSender = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.senderPublicKey));
+                var balanceSender = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Input));
                 if (balanceSender != null)
                 {
                     foreach (var item in balanceSender)
@@ -110,7 +118,7 @@ namespace WebWallet.Controllers
 
                 }
                 // update wallet balance for reciver 
-                var balanceReciever = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.recieverPublicKey));
+                var balanceReciever = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Output));
                 if (balanceReciever != null)
                 {
                     foreach (var item in balanceReciever)
@@ -122,11 +130,64 @@ namespace WebWallet.Controllers
 
                 }
             }
+
+            //Post Transaction to Api
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("https://localhost:7157/Transactions");
+                //HTTP POST
+                var postTask = client.PostAsJsonAsync<TransactionModel>("transactions", transcation);
+                postTask.Wait();
+
+                var result = postTask.Result;
+                if (result.IsSuccessStatusCode)
+                    return RedirectToAction("Index");
+
+            }
+            ModelState.AddModelError(string.Empty, "Error");
             var startTime = DateTime.Now;
             Console.WriteLine(JsonConvert.SerializeObject(transaction, Formatting.Indented));
             var endTime = DateTime.Now;
             Console.WriteLine($"Duration: {endTime - startTime}");
 
+            return View("Index");
+
+        }
+
+        //Get transaction 
+
+        public ActionResult GetTransaction()
+        {
+            IEnumerable<TransactionModel> transactions = null;
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("https://localhost:7157/");
+                //HTTP GET
+                var responseTask = client.GetAsync("transactions");
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<IList<TransactionModel>>();
+                    readTask.Wait();
+                    transactions = readTask.Result;
+                    //testing result
+                    //  foreach(var transcation in transactions)
+                    //{
+                    //  Console.WriteLine(transcation);
+                    //}
+
+                }
+                //web api sent error response 
+                else
+                {
+                    transactions = Enumerable.Empty<TransactionModel>();
+                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                }
+
+            }
+            return View("Index");
         }
 
 

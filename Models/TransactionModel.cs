@@ -2,15 +2,16 @@
 {
     public class TransactionModel
     {
-
-        public int version;
-        public string previousHash { get; set; }
-        public string senderPublicKey { get; set; }
-        public string recieverPublicKey { get; set; }
-
-        public bool delegates { get; set; }
+        public Guid Id { get; set; }
+        public int Version { get; set; }
+        public DateTime CreationDate { get; set; }
+        public string? Name { get; set; }
+        public string MerkleHash { get; set; }
+        public string Input { get; set; }
         public int Amount { get; set; }
-        public DateTime Date { get; set; }
+        public string Output { get; set; }
+        public bool Delegate { get; set; }
+        public string Signature { get; set; }
 
         public TransactionModel() { }
     }
