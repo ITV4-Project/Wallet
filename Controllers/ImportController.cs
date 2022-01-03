@@ -15,7 +15,7 @@ namespace WebWallet.Controllers
         }
 
         // GET: ImportController
-        public ActionResult Transcation()
+        public ActionResult Transaction()
         {
             return View();
         }
@@ -91,18 +91,19 @@ namespace WebWallet.Controllers
         //create transaction
         public ActionResult CreateTransaction(TransactionModel transaction)
         {
-            var transcation = new TransactionModel
+            TransactionApi convertedTransaction = new TransactionApi
             {
-                Version = 1,
-                MerkleHash = null,
-                Input = transaction.Input,
-                Output = transaction.Output,
-                Delegate = false,
+                Version = transaction.Version != null ? transaction.Version : 0,
+                Name = transaction.Name != null ? transaction.Name : "Bob",
+                MerkleHash = Convert.FromHexString(transaction.Input), //testing
+                Input = Convert.FromHexString(transaction.Input),
                 Amount = transaction.Amount,
+                Output = Convert.FromHexString(transaction.Output),
+                Delegate = transaction.Delegate != null ? transaction.Delegate : false,
+                Signature = Convert.FromHexString(transaction.Input),
                 CreationDate = transaction.CreationDate,
-
-
             };
+
             using (var db = new ContextDB())
             {
                 //update wallet balance for sender
@@ -136,7 +137,7 @@ namespace WebWallet.Controllers
             {
                 client.BaseAddress = new Uri("https://localhost:7157/Transactions");
                 //HTTP POST
-                var postTask = client.PostAsJsonAsync<TransactionModel>("transactions", transcation);
+                var postTask = client.PostAsJsonAsync<TransactionApi>("transactions", convertedTransaction);
                 postTask.Wait();
 
                 var result = postTask.Result;
@@ -146,7 +147,7 @@ namespace WebWallet.Controllers
             }
             ModelState.AddModelError(string.Empty, "Error");
             var startTime = DateTime.Now;
-            Console.WriteLine(JsonConvert.SerializeObject(transaction, Formatting.Indented));
+            Console.WriteLine(JsonConvert.SerializeObject(convertedTransaction, Formatting.Indented));
             var endTime = DateTime.Now;
             Console.WriteLine($"Duration: {endTime - startTime}");
 
@@ -158,7 +159,7 @@ namespace WebWallet.Controllers
 
         public ActionResult GetTransaction()
         {
-            IEnumerable<TransactionModel> transactions = null;
+            IEnumerable<TransactionApi> transactions = null;
             using (var client = new HttpClient())
             {
                 client.BaseAddress = new Uri("https://localhost:7157/");
@@ -169,7 +170,7 @@ namespace WebWallet.Controllers
                 var result = responseTask.Result;
                 if (result.IsSuccessStatusCode)
                 {
-                    var readTask = result.Content.ReadAsAsync<IList<TransactionModel>>();
+                    var readTask = result.Content.ReadFromJsonAsync<IList<TransactionApi>>();
                     readTask.Wait();
                     transactions = readTask.Result;
                     //testing result
@@ -182,7 +183,7 @@ namespace WebWallet.Controllers
                 //web api sent error response 
                 else
                 {
-                    transactions = Enumerable.Empty<TransactionModel>();
+                    transactions = Enumerable.Empty<TransactionApi>();
                     ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
                 }
 
