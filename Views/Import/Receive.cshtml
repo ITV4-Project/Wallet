@@ -1,0 +1,71 @@
+﻿@model WebWallet.Models.TransactionModel
+
+@{
+    ViewData["Title"] = "Receive";
+    var key = TempData["key"];
+    TempData.Keep("key");
+}
+
+@using (Html.BeginForm("QR", "Import", FormMethod.Post)) {
+
+<h1>Generate QR Code</h1>
+
+<div class="container">
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+        <form asp-action="Receive">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+            <div class="form-group">
+                <label asp-for="CreationDate" class="control-label"></label>
+                <input asp-for="CreationDate" class="form-control" />
+              
+            
+            </div>
+            <div class="form-group">
+                <label asp-for="Input" class="control-label"></label>
+                  <input asp-for="Input" value=@key class="form-control" />
+                  <span asp-validation-for="Input" class="text-danger"></span>
+            
+               
+            </div>
+            <div class="form-group">
+                <label asp-for="Amount" class="control-label"></label>
+                <input asp-for="Amount" class="form-control" />
+                <span asp-validation-for="Amount" class="text-danger"></span>
+            </div>
+            <br />
+            <br />
+           
+             <div class="d-grid gap-2 col-6 ">
+                <input type="submit" value="Receive" class="btn btn-success" />
+            </div>
+             
+        </form>
+
+        <div>
+           <a asp-action="Details">Back to List</a>
+       </div>
+
+       </div>
+      
+    </div>
+</div>
+ <div class="col-lg-6 mb-4">
+                
+                    <div class="card-body">
+
+  @if (ViewBag.QRCodeImage != null)
+            {
+                <img src="@ViewBag.QRCodeImage" alt="" style="height:300px; width:300px;">
+            }
+              
+        </div>
+
+</div>
+</div>
+</div>
+
+}

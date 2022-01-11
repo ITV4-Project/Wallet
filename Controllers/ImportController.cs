@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using QRCoder;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Security.Cryptography;
 using System.Text;
 using WebWallet.Models;
@@ -211,6 +214,31 @@ namespace WebWallet.Controllers
             }
             return View("Index");
 
+        }
+
+        [HttpPost]
+        public ActionResult QR(TransactionModel transaction)
+        {
+
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                TempData["key"] = transaction.Input;
+                QRCodeGenerator codeGenerator = new QRCodeGenerator();
+                string qrstring = "Receiver is : " + transaction.Input + "Amount: " + transaction.Amount + "Date : " + transaction.CreationDate;
+                QRCodeData codeData = codeGenerator.CreateQrCode(qrstring, QRCodeGenerator.ECCLevel.Q);
+                QRCode qr = new QRCode(codeData);
+
+                using (Bitmap bitmap = qr.GetGraphic(20))
+                {
+                    bitmap.Save(ms, ImageFormat.Png);
+                    ViewBag.QRCodeImage = "data:image/png;base64," + Convert.ToBase64String(ms.ToArray());
+                }
+            }
+
+
+
+            return View("Receive");
         }
 
 
