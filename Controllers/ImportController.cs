@@ -95,14 +95,15 @@ namespace WebWallet.Controllers
             {
                 Version = transaction.Version != null ? transaction.Version : 0,
                 Name = transaction.Name != null ? transaction.Name : "Bob",
-                MerkleHash = Convert.FromHexString(transaction.Input), //testing
-                Input = Convert.FromHexString(transaction.Input),
+                MerkleHash = Encoding.ASCII.GetBytes("t4or5p62SBIIvb6hKNxl/6pXt+7wsRwLQTUeq0O1Unmzu6XGWo+oI8g7QAECFY2DxkVlfmYus9Rc79MgV9XvGg=="), //testing
+                Input = Encoding.ASCII.GetBytes(transaction.Input),
                 Amount = transaction.Amount,
-                Output = Convert.FromHexString(transaction.Output),
+                Output = Encoding.ASCII.GetBytes(transaction.Output),
                 Delegate = transaction.Delegate != null ? transaction.Delegate : false,
-                Signature = Convert.FromHexString(transaction.Input),
-                CreationDate = transaction.CreationDate,
-            };
+                Signature = Encoding.ASCII.GetBytes("t4or5p62SBIIvb6hKNxl/6pXt+7wsRwLQTUeq0O1Unmzu6XGWo+oI8g7QAECFY2DxkVlfmYus9Rc79MgV9XvGg=="), //testing
+
+           
+        };
 
             using (var db = new ContextDB())
             {
@@ -114,6 +115,7 @@ namespace WebWallet.Controllers
                     {
                         WalletModel wallet = db.Wallets.Find(item.Id);
                         wallet.Balance = wallet.Balance - transaction.Amount;
+                        TempData["Balance"] = wallet.Balance;
                     }
                     db.SaveChanges();
 
@@ -142,7 +144,7 @@ namespace WebWallet.Controllers
 
                 var result = postTask.Result;
                 if (result.IsSuccessStatusCode)
-                    return RedirectToAction("Index");
+                    return RedirectToAction("Details");
 
             }
             ModelState.AddModelError(string.Empty, "Error");
@@ -151,7 +153,7 @@ namespace WebWallet.Controllers
             var endTime = DateTime.Now;
             Console.WriteLine($"Duration: {endTime - startTime}");
 
-            return View("Index");
+            return View("Details");
 
         }
 
@@ -159,6 +161,7 @@ namespace WebWallet.Controllers
 
         public ActionResult GetTransaction()
         {
+
             IEnumerable<TransactionApi> transactions = null;
             using (var client = new HttpClient())
             {
@@ -170,14 +173,32 @@ namespace WebWallet.Controllers
                 var result = responseTask.Result;
                 if (result.IsSuccessStatusCode)
                 {
-                    var readTask = result.Content.ReadFromJsonAsync<IList<TransactionApi>>();
+                    var readTask = result.Content.ReadAsAsync<IList<TransactionApi>>();
                     readTask.Wait();
                     transactions = readTask.Result;
-                    //testing result
-                    //  foreach(var transcation in transactions)
-                    //{
-                    //  Console.WriteLine(transcation);
-                    //}
+
+
+
+
+
+                    foreach (var transcation in transactions)
+
+                    {
+
+                        TempData["Version"] = transcation.Version;
+                        TempData["CreationDate"] = transcation.CreationDate;
+                        TempData["Name"] = transcation.Name;
+                        TempData["MerkleHash"] = Encoding.Default.GetString(transcation.MerkleHash);
+                        TempData["Amount"] = transcation.Amount;
+                        TempData["Input"] = Convert.ToBase64String(transcation.Input);
+                        TempData["Output"] = Convert.ToBase64String(transcation.Output);
+                        TempData["Delegate"] = transcation.Delegate;
+                        TempData["Signature"] = Encoding.Default.GetString(transcation.Signature);
+
+
+                        Console.WriteLine(transcation);
+                    }
+                    //  return View("Index");
 
                 }
                 //web api sent error response 
@@ -189,8 +210,8 @@ namespace WebWallet.Controllers
 
             }
             return View("Index");
-        }
 
+        }
 
 
     }

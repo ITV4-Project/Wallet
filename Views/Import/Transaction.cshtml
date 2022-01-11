@@ -7,8 +7,15 @@
 @{
 
     //List<WalletModel> wallets = TempData["wallets"]as List<WalletModel>;
-         var balance = TempData["Balance"];
-          var key = TempData["key"];
+    var balance = TempData["Balance"];
+    var key = TempData["key"];
+    var output = TempData["Output"];
+    var date= TempData["Date"]; 
+    TempData.Keep("Balance");
+    TempData.Keep("key"); 
+    TempData.Keep("Output"); 
+    TempData.Keep("Date"); 
+
 }
 
 

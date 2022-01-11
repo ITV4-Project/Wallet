@@ -5,6 +5,7 @@
     var balance = TempData["Balance"];
     var key = TempData["key"];
     TempData.Keep("key"); 
+    TempData.Keep("Balance"); 
 }
 
 
@@ -26,7 +27,7 @@
         @using (Html.BeginForm("Import")){
         <div class="d-grid gap-2 col-6 mx-auto">
         <button class="btn btn-success" formaction="Send" type="submit">Send</button>
-        <button class="btn btn-success" formaction="Receive" type="submit">Rescive</button>
+        <button class="btn btn-success" formaction="Receive" type="submit">Receive</button>
         <button class="btn btn-success" formaction="GetTransaction" type="submit">Get Transaction History</button>    
     </div>
         }

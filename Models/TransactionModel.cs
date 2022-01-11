@@ -4,7 +4,7 @@
     {
         public Guid Id { get; set; }
         public int Version { get; set; }
-        public DateTime CreationDate { get; set; }
+        public DateTimeOffset CreationDate { get; set; }
         public string? Name { get; set; }
         public string MerkleHash { get; set; }
         public string Input { get; set; }
