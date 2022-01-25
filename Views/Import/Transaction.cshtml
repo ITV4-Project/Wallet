@@ -10,7 +10,9 @@
     var balance = TempData["Balance"];
     var key = TempData["key"];
     var output = TempData["Output"];
-    var date= TempData["Date"]; 
+    var date= TempData["Date"];
+    var sender = TempData["sender"];
+    TempData.Keep("sender");
     TempData.Keep("Balance");
     TempData.Keep("key"); 
     TempData.Keep("Output"); 
@@ -34,7 +36,7 @@
             <span asp-validation-for="Input" class="text-danger"></span>
             
              <label class="control-label">Reciever Public Key</label>
-            <input asp-for="Output" class="form-control" />
+            <input asp-for="Output" value=@sender class="form-control" />
             <span asp-validation-for="Output" class="text-danger"></span>
            
            

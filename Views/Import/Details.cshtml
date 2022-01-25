@@ -4,8 +4,12 @@
     var walletName = TempData["wallet"];
     var balance = TempData["Balance"];
     var key = TempData["key"];
+    var name = TempData["Name"];
+   // var sender = TempData["sender"];
+    TempData.Keep("sender");
     TempData.Keep("key"); 
-    TempData.Keep("Balance"); 
+    TempData.Keep("Balance");
+    TempData.Keep("Name");
 }
 
 

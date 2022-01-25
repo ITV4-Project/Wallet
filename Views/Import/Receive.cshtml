@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Receive";
     var key = TempData["key"];
+    var Sender = TempData["sender"];
+    TempData.Keep("sender");
     TempData.Keep("key");
 }
 

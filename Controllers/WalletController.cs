@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Core;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
 using WebWallet.Models;
@@ -7,7 +8,10 @@ namespace WebWallet.Controllers
 {
     public class WalletController : Controller
     {
-        private ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+      //  private ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        ECDsaKey key = new ECDsaKey();
+
+
 
         // GET: WalletController
         public ActionResult Create()
@@ -30,7 +34,7 @@ namespace WebWallet.Controllers
                 UserLName = Wallet.UserLName,
                 WalletName = Wallet.WalletName,
                 PassPhrase = hash,
-                PublicKey = GetPublicKey(),
+                PublicKey =  key.GetPublicKey(),
                 //default balance value by creating wallet 
                 Balance = 10, 
 
@@ -48,6 +52,9 @@ namespace WebWallet.Controllers
             return View("Create");
         }
 
+      
+        
+
         private string Hash(String hash)
         {
             //One way hash using SHA-256
@@ -59,48 +66,9 @@ namespace WebWallet.Controllers
 
         }
 
-        public void ECDsaKey(String exisitingKey, bool isPrivateKey)
-        {
-            if (isPrivateKey)
-            {
-                ECParameters parameters = new ECParameters();
-                parameters.Curve = ECCurve.NamedCurves.nistP256;
-                parameters.D = Convert.FromHexString(exisitingKey);
+       
 
-                key = ECDsa.Create(parameters);
-            }
-            else
-            {
-                ECParameters parameters = new ECParameters();
-                parameters.Curve = ECCurve.NamedCurves.nistP256;
-
-                byte[] publicKeyBytes = Convert.FromHexString(exisitingKey);
-                parameters.Q = new ECPoint
-                {
-                    X = publicKeyBytes.Skip(1).Take(16).ToArray(),
-                    Y = publicKeyBytes.Skip(17).ToArray()
-                };
-
-                key = ECDsa.Create(parameters);
-            }
-        }
-
-        public string GetPrivateKey()
-        {
-            ECParameters p = key.ExportParameters(true);
-            var privateKey = p.D;
-            return Convert.ToHexString(privateKey);
-        }
-
-        public string GetPublicKey()
-        {
-            ECParameters p = key.ExportParameters(true);
-            byte[] prefix = { 0x04 };
-            byte[] x = p.Q.X;
-            byte[] y = p.Q.Y;
-            byte[] publicKey = prefix.Concat(x).Concat(y).ToArray();
-            return Convert.ToHexString(publicKey);
-        }
+     
 
 
 
