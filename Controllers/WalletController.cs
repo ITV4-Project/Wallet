@@ -8,7 +8,7 @@ namespace WebWallet.Controllers
 {
     public class WalletController : Controller
     {
-      //  private ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+      
         ECDsaKey key = new ECDsaKey();
 
 
@@ -35,6 +35,7 @@ namespace WebWallet.Controllers
                 WalletName = Wallet.WalletName,
                 PassPhrase = hash,
                 PublicKey =  key.GetPublicKeyAsString(),
+                PrivateKey = key.GetPrivateKeyAsString(), // private key add to database
                 //default balance value by creating wallet 
                 Balance = 10, 
 

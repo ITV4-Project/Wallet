@@ -103,65 +103,77 @@ namespace WebWallet.Controllers
         [HttpPost]
         public ActionResult CreateTransaction(TransactionModel transaction)
         {
-            ECDsaKey key = new ECDsaKey();
-
-            transaction.MerkleHash = "SlUgtuy9iKyXHYa9wyrguAO0dHIoipt0VPVEGr9vCbrunF/zrlZZ6wGkDd/aNzaXwRpmVz4gDJzLzhYNXM27Jg=="; // Testing
-            if (transaction.Name == "") transaction.Name = "bob";
-            TransactionRecord transactionRecord = TransactionRecord.FromModel(transaction);
-
-            // Dit gaat niet werken, De transactie moet ondertekend worden met de key die bij de Input hoort. Niet een lege ECDsaKey()
-            transactionRecord.Sign(key);
-
+            //using database to find the private key that related to public key
             using (var db = new ContextDB())
             {
-                //update wallet balance for sender
-                var balanceSender = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Input));
-                if (balanceSender != null)
+               //using database to find the private key that related to public key
+               var privateKey = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Input)).ToList();
+               foreach(var item in privateKey)
                 {
-                    foreach (var item in balanceSender)
+                 WalletModel wallet = db.Wallets.Find(item.Id);
+                 transaction.privateKey = wallet.PrivateKey;
+              }
+                //using private key to sign
+                ECDsaKey key = ECDsaKey.FromPrivateKey(transaction.privateKey);
+                transaction.MerkleHash = "SlUgtuy9iKyXHYa9wyrguAO0dHIoipt0VPVEGr9vCbrunF/zrlZZ6wGkDd/aNzaXwRpmVz4gDJzLzhYNXM27Jg=="; // Testing
+                if (transaction.Name == "") transaction.Name = "bob";
+                TransactionRecord transactionRecord = TransactionRecord.FromModel(transaction);
+
+                // Dit werkt nu
+                // De transactie moet ondertekend worden met de key die bij de Input hoort. Niet een lege ECDsaKey()
+                transactionRecord.Sign(key);
+
+
+                  //update wallet balance for sender
+                    var balanceSender = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Input));
+                    if (balanceSender != null)
                     {
-                        WalletModel wallet = db.Wallets.Find(item.Id);
-                        wallet.Balance = wallet.Balance - transaction.Amount;
-                        TempData["Balance"] = wallet.Balance;
+                        foreach (var item in balanceSender)
+                        {
+                            WalletModel wallet = db.Wallets.Find(item.Id);
+                            wallet.Balance = wallet.Balance - transaction.Amount;
+                            TempData["Balance"] = wallet.Balance;
+                        }
+                        db.SaveChanges();
+
                     }
-                    db.SaveChanges();
+                    // update wallet balance for reciver 
+                    var balanceReciever = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Output));
+                    if (balanceReciever != null)
+                    {
+                        foreach (var item in balanceReciever)
+                        {
+                            WalletModel wallet = db.Wallets.Find(item.Id);
+                            wallet.Balance = wallet.Balance + transaction.Amount;
+                        }
+                        db.SaveChanges();
+
+                    }
+                
+
+                //Post Transaction to Api
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri("https://localhost:7157/transactions");
+                    //HTTP POST
+                    var postTask = client.PostAsJsonAsync<TransactionRecord>("transactions", transactionRecord);
+                    postTask.Wait();
+
+                    var result = postTask.Result;
+                    if (result.IsSuccessStatusCode)
+                        return RedirectToAction("Details");
 
                 }
-                // update wallet balance for reciver 
-                var balanceReciever = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Output));
-                if (balanceReciever != null)
-                {
-                    foreach (var item in balanceReciever)
-                    {
-                        WalletModel wallet = db.Wallets.Find(item.Id);
-                        wallet.Balance = wallet.Balance + transaction.Amount;
-                    }
-                    db.SaveChanges();
+                ModelState.AddModelError(string.Empty, "Error");
+                var startTime = DateTime.Now;
+                Console.WriteLine(JsonConvert.SerializeObject(transactionRecord, Formatting.Indented));
+                var endTime = DateTime.Now;
+                Console.WriteLine($"Duration: {endTime - startTime}");
 
-                }
-            }
+                return View("Details");
 
-            //Post Transaction to Api
-            using (var client = new HttpClient())
-            {
-                client.BaseAddress = new Uri("https://localhost:7157/transactions");
-                //HTTP POST
-                var postTask = client.PostAsJsonAsync<TransactionRecord>("transactions", transactionRecord);
-                postTask.Wait();
-
-                var result = postTask.Result;
-                if (result.IsSuccessStatusCode)
-                    return RedirectToAction("Details");
 
             }
-            ModelState.AddModelError(string.Empty, "Error");
-            var startTime = DateTime.Now;
-            Console.WriteLine(JsonConvert.SerializeObject(transactionRecord, Formatting.Indented));
-            var endTime = DateTime.Now;
-            Console.WriteLine($"Duration: {endTime - startTime}");
-
-            return View("Details");
-
         }
 
 

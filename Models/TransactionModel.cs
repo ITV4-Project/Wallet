@@ -10,6 +10,7 @@
         public string Input { get; set; }
         public int Amount { get; set; }
         public string Output { get; set; }
+        public string privateKey { get; set; }
         public bool IsDelegating { get; set; }
 
         public TransactionModel() {
