@@ -1,7 +1,5 @@
 ﻿@model WebWallet.Models.TransactionModel;
 
-
-
 @using WebWallet.Controllers
 @using WebWallet.Models
 @{
@@ -45,8 +43,8 @@
             <span asp-validation-for="Amount" class="text-danger"></span>
             
             <label class="control-label">Date</label>
-            <input asp-for="CreationDate" class="form-control" />
-            <span asp-validation-for="CreationDate" class="text-danger"></span>
+            <input asp-for="CreationTime" class="form-control" />
+            <span asp-validation-for="CreationTime" class="text-danger"></span>
             
             <br />
             <br />
