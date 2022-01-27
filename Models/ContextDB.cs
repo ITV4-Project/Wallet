@@ -16,7 +16,7 @@ namespace WebWallet.Models
 
 
 
-        public DbSet<WebWallet.Models.TransactionApi> TransactionApi { get; set; }
+        public DbSet<WebWallet.Models.TransactionRecord> TransactionRecord { get; set; }
        
 
 

@@ -101,60 +101,16 @@ namespace WebWallet.Controllers
 
         //create transaction
         [HttpPost]
-     
-
-        public byte[] SignatureDataConvertToBytes(TransactionApi transaction)
-        {
-            byte[] vb = BitConverter.GetBytes(transaction.Version);
-            byte[] mhb = transaction.MerkleHash;
-            byte[] ob = transaction.Output;
-            byte[] ab = BitConverter.GetBytes(transaction.Amount);
-            byte[] db = BitConverter.GetBytes(transaction.Delegate);
-
-            if (!BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(vb);
-                Array.Reverse(ab);
-                Array.Reverse(db);
-            }
-
-            return vb.Concat(vb).Concat(mhb).Concat(ob).Concat(ab).Concat(db).ToArray();
-        }
-
-        [HttpPost]
         public ActionResult CreateTransaction(TransactionModel transaction)
         {
             ECDsaKey key = new ECDsaKey();
-            //Console.WriteLine(keys.ElementAt(0).GetPublicKey());
 
-            TransactionApi transactionToSign = new TransactionApi
-            {
-                Version = transaction.Version != null ? transaction.Version : 1,
-                Name = transaction.Name != null ? transaction.Name : "Bob",
-                MerkleHash = Encoding.ASCII.GetBytes("t4or5p62SBIIvb6hKNxl/6pXt+7wsRwLQTUeq0O1Unmzu6XGWo+oI8g7QAECFY2DxkVlfmYus9Rc79MgV9XvGg=="),//testing
-                Input = Convert.FromHexString(transaction.Input),
-                Amount = transaction.Amount,
-                Output = Convert.FromHexString(transaction.Output),
-                Delegate = transaction.Delegate != null ? transaction.Delegate : false,
-             
+            transaction.MerkleHash = "SlUgtuy9iKyXHYa9wyrguAO0dHIoipt0VPVEGr9vCbrunF/zrlZZ6wGkDd/aNzaXwRpmVz4gDJzLzhYNXM27Jg=="; // Testing
+            if (transaction.Name == "") transaction.Name = "bob";
+            TransactionRecord transactionRecord = TransactionRecord.FromModel(transaction);
 
-
-            };
-            TransactionApi convertedTransaction = new TransactionApi
-            {
-                Id = Guid.NewGuid(),
-                Version = 1,
-                CreationDate = DateTimeOffset.UtcNow,
-                Name = transaction.Name != null ? transaction.Name : "Bob",
-                MerkleHash = Encoding.ASCII.GetBytes("t4or5p62SBIIvb6hKNxl/6pXt+7wsRwLQTUeq0O1Unmzu6XGWo+oI8g7QAECFY2DxkVlfmYus9Rc79MgV9XvGg=="), //testing
-                Input = Convert.FromHexString(transaction.Input),
-                Amount = transaction.Amount,
-                Output = Convert.FromHexString(transaction.Output),
-                Delegate = transaction.Delegate != null ? transaction.Delegate : true,
-                Signature = key.Sign(SignatureDataConvertToBytes(transactionToSign))
-
-
-            };
+            // Dit gaat niet werken, De transactie moet ondertekend worden met de key die bij de Input hoort. Niet een lege ECDsaKey()
+            transactionRecord.Sign(key);
 
             using (var db = new ContextDB())
             {
@@ -190,7 +146,7 @@ namespace WebWallet.Controllers
             {
                 client.BaseAddress = new Uri("https://localhost:7157/transactions");
                 //HTTP POST
-                var postTask = client.PostAsJsonAsync<TransactionApi>("transactions", convertedTransaction);
+                var postTask = client.PostAsJsonAsync<TransactionRecord>("transactions", transactionRecord);
                 postTask.Wait();
 
                 var result = postTask.Result;
@@ -200,7 +156,7 @@ namespace WebWallet.Controllers
             }
             ModelState.AddModelError(string.Empty, "Error");
             var startTime = DateTime.Now;
-            Console.WriteLine(JsonConvert.SerializeObject(convertedTransaction, Formatting.Indented));
+            Console.WriteLine(JsonConvert.SerializeObject(transactionRecord, Formatting.Indented));
             var endTime = DateTime.Now;
             Console.WriteLine($"Duration: {endTime - startTime}");
 
@@ -214,7 +170,7 @@ namespace WebWallet.Controllers
         public ActionResult GetTransaction()
         {
       
-            IEnumerable<TransactionApi> transactions = null;
+            IEnumerable<TransactionRecord> transactions = null;
             using (var client = new HttpClient())
             {
                 client.BaseAddress = new Uri("https://localhost:7157/");
@@ -225,7 +181,7 @@ namespace WebWallet.Controllers
                 var result = responseTask.Result;
                 if (result.IsSuccessStatusCode)
                 {
-                    var readTask = result.Content.ReadFromJsonAsync<IList<TransactionApi>>();
+                    var readTask = result.Content.ReadFromJsonAsync<IList<TransactionRecord>>();
                     readTask.Wait();
                     transactions = readTask.Result;
 
@@ -233,7 +189,7 @@ namespace WebWallet.Controllers
                 //web api sent error response 
                 else
                 {
-                    transactions = Enumerable.Empty<TransactionApi>();
+                    transactions = Enumerable.Empty<TransactionRecord>();
                     ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
                 }
 

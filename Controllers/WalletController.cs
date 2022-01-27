@@ -34,7 +34,7 @@ namespace WebWallet.Controllers
                 UserLName = Wallet.UserLName,
                 WalletName = Wallet.WalletName,
                 PassPhrase = hash,
-                PublicKey =  key.GetPublicKey(),
+                PublicKey =  key.GetPublicKeyAsString(),
                 //default balance value by creating wallet 
                 Balance = 10, 
 

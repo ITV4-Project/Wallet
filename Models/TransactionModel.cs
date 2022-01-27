@@ -4,15 +4,22 @@
     {
         public Guid Id { get; set; }
         public int Version { get; set; }
-        public DateTimeOffset CreationDate { get; set; }
+        public DateTimeOffset CreationTime { get; set; }
         public string? Name { get; set; }
         public string MerkleHash { get; set; }
         public string Input { get; set; }
         public int Amount { get; set; }
         public string Output { get; set; }
-        public bool Delegate { get; set; }
-        public string Signature { get; set; }
+        public bool IsDelegating { get; set; }
 
-        public TransactionModel() { }
+        public TransactionModel() {
+            Id = Guid.NewGuid();
+            Version = 1;
+            MerkleHash = string.Empty;
+            Input = string.Empty;
+            Amount = 0;
+            Output = string.Empty;
+            IsDelegating = false;
+        }
     }
 }
