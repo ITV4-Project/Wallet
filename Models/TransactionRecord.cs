@@ -12,11 +12,11 @@ namespace WebWallet.Models {
 
 		public static TransactionRecord FromModel(TransactionModel transactionModel) {
 			return new TransactionRecord() {
-				Id = transactionModel.Id,
 				Version = transactionModel.Version,
-				Name = transactionModel.Name,
+				CreationTime = DateTimeOffset.UtcNow,
 				MerkleHash = Convert.FromBase64String(transactionModel.MerkleHash),
 				Input = Convert.FromHexString(transactionModel.Input),
+				Amount = transactionModel.Amount,
 				Output = Convert.FromHexString(transactionModel.Output),
 				IsDelegating = transactionModel.IsDelegating,
 			};

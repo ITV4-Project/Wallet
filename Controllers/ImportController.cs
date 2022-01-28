@@ -49,7 +49,7 @@ namespace WebWallet.Controllers
         public ActionResult ImportW(ImportWalletModel importedWallet)
         {
             var hash = Hash(importedWallet.PassWallet);
-          
+
 
 
             using (var db = new ContextDB())
@@ -68,8 +68,9 @@ namespace WebWallet.Controllers
                         return View("Details");
                     }
 
-                    
-                }else { return View("Import"); }
+
+                }
+                else { return View("Import"); }
             }
 
             return View("Import");
@@ -101,62 +102,69 @@ namespace WebWallet.Controllers
 
         //create transaction
         [HttpPost]
-        public ActionResult CreateTransaction(TransactionModel transaction)
+        public ActionResult CreateTransaction(TransactionModel transactionDto)
         {
             //using database to find the private key that related to public key
             using (var db = new ContextDB())
             {
-               //using database to find the private key that related to public key
-               var privateKey = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Input)).ToList();
-               foreach(var item in privateKey)
+                //using database to find the private key that related to public key
+                var privateKey = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transactionDto.Input)).ToList();
+                foreach (var item in privateKey)
                 {
-                 WalletModel wallet = db.Wallets.Find(item.Id);
-                 transaction.privateKey = wallet.PrivateKey;
-              }
+                    WalletModel wallet = db.Wallets.Find(item.Id);
+                    transactionDto.privateKey = wallet.PrivateKey;
+                }
                 //using private key to sign
-                ECDsaKey key = ECDsaKey.FromPrivateKey(transaction.privateKey);
-                transaction.MerkleHash = "SlUgtuy9iKyXHYa9wyrguAO0dHIoipt0VPVEGr9vCbrunF/zrlZZ6wGkDd/aNzaXwRpmVz4gDJzLzhYNXM27Jg=="; // Testing
-                if (transaction.Name == "") transaction.Name = "bob";
-                TransactionRecord transactionRecord = TransactionRecord.FromModel(transaction);
+                ECDsaKey key = ECDsaKey.FromPrivateKey(transactionDto.privateKey);
+
+
+                transactionDto.MerkleHash = "SlUgtuy9iKyXHYa9wyrguAO0dHIoipt0VPVEGr9vCbrunF/zrlZZ6wGkDd/aNzaXwRpmVz4gDJzLzhYNXM27Jg=="; // Testing
+                Transaction transaction = new
+                    (
+                        merkleHash: Convert.FromBase64String(transactionDto.MerkleHash),
+                        input: Convert.FromHexString(transactionDto.Input),
+                        output: Convert.FromHexString(transactionDto.Output),
+                        amount: transactionDto.Amount,
+                        isDelegating: transactionDto.IsDelegating
+                    );
 
                 // Dit werkt nu
                 // De transactie moet ondertekend worden met de key die bij de Input hoort. Niet een lege ECDsaKey()
-                transactionRecord.Sign(key);
+                transaction.Sign(key);
 
-
-                  //update wallet balance for sender
-                    var balanceSender = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Input));
-                    if (balanceSender != null)
+                //update wallet balance for sender
+                var balanceSender = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transactionDto.Input));
+                if (balanceSender != null)
+                {
+                    foreach (var item in balanceSender)
                     {
-                        foreach (var item in balanceSender)
-                        {
-                            WalletModel wallet = db.Wallets.Find(item.Id);
-                            wallet.Balance = wallet.Balance - transaction.Amount;
-                            TempData["Balance"] = wallet.Balance;
-                        }
-                        db.SaveChanges();
-
+                        WalletModel wallet = db.Wallets.Find(item.Id);
+                        wallet.Balance = wallet.Balance - transactionDto.Amount;
+                        TempData["Balance"] = wallet.Balance;
                     }
-                    // update wallet balance for reciver 
-                    var balanceReciever = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Output));
-                    if (balanceReciever != null)
+                    db.SaveChanges();
+
+                }
+                // update wallet balance for reciver 
+                var balanceReciever = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transactionDto.Output));
+                if (balanceReciever != null)
+                {
+                    foreach (var item in balanceReciever)
                     {
-                        foreach (var item in balanceReciever)
-                        {
-                            WalletModel wallet = db.Wallets.Find(item.Id);
-                            wallet.Balance = wallet.Balance + transaction.Amount;
-                        }
-                        db.SaveChanges();
-
+                        WalletModel wallet = db.Wallets.Find(item.Id);
+                        wallet.Balance = wallet.Balance + transactionDto.Amount;
                     }
-                
+                    db.SaveChanges();
+
+                }
+
 
                 //Post Transaction to Api
                 using (var client = new HttpClient())
                 {
                     client.BaseAddress = new Uri("https://localhost:7157/transactions");
                     //HTTP POST
-                    var postTask = client.PostAsJsonAsync<TransactionRecord>("transactions", transactionRecord);
+                    var postTask = client.PostAsJsonAsync("transactions", transaction);
                     postTask.Wait();
 
                     var result = postTask.Result;
@@ -166,7 +174,7 @@ namespace WebWallet.Controllers
                 }
                 ModelState.AddModelError(string.Empty, "Error");
                 var startTime = DateTime.Now;
-                Console.WriteLine(JsonConvert.SerializeObject(transactionRecord, Formatting.Indented));
+                Console.WriteLine(JsonConvert.SerializeObject(transaction, Formatting.Indented));
                 var endTime = DateTime.Now;
                 Console.WriteLine($"Duration: {endTime - startTime}");
 
@@ -178,10 +186,10 @@ namespace WebWallet.Controllers
 
 
         //Get transaction 
-       [HttpGet]
+        [HttpGet]
         public ActionResult GetTransaction()
         {
-      
+
             IEnumerable<TransactionRecord> transactions = null;
             using (var client = new HttpClient())
             {
@@ -230,7 +238,7 @@ namespace WebWallet.Controllers
                     ViewBag.QRCodeImage = "data:image/png;base64," + Convert.ToBase64String(ms.ToArray());
                 }
 
-                
+
             }
 
 
