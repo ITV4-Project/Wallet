@@ -14,13 +14,7 @@ namespace WebWallet.Controllers
 {
     public class ImportController : Controller
     {
-        private static readonly List<ECDsaKey> keys = new()
-        {
-            new ECDsaKey { },
-            new ECDsaKey { },
-            new ECDsaKey { }
-        };
-
+       
         // GET: ImportController
         public ActionResult Index()
         {
@@ -113,14 +107,17 @@ namespace WebWallet.Controllers
                 {
                     WalletModel wallet = db.Wallets.Find(item.Id);
                     transactionDto.privateKey = wallet.PrivateKey;
+                    
                 }
                 //using private key to sign
                 ECDsaKey key = ECDsaKey.FromPrivateKey(transactionDto.privateKey);
 
 
                 transactionDto.MerkleHash = "SlUgtuy9iKyXHYa9wyrguAO0dHIoipt0VPVEGr9vCbrunF/zrlZZ6wGkDd/aNzaXwRpmVz4gDJzLzhYNXM27Jg=="; // Testing
+                
                 Transaction transaction = new
                     (
+                       
                         merkleHash: Convert.FromBase64String(transactionDto.MerkleHash),
                         input: Convert.FromHexString(transactionDto.Input),
                         output: Convert.FromHexString(transactionDto.Output),
@@ -186,7 +183,6 @@ namespace WebWallet.Controllers
 
 
         //Get transaction 
-        [HttpGet]
         public ActionResult GetTransaction()
         {
 
@@ -204,7 +200,20 @@ namespace WebWallet.Controllers
                     var readTask = result.Content.ReadFromJsonAsync<IList<TransactionRecord>>();
                     readTask.Wait();
                     transactions = readTask.Result;
+                    foreach (var transcation in transactions)
+                    {
+                        ViewData["Version"] = transcation.Version;
+                        ViewData["CreationDate"] = transcation.CreationTime;
+                        ViewData["MerkleHash"] = Convert.ToBase64String(transcation.MerkleHash).ToString();
+                        ViewData["Amount"] = transcation.Amount;
+                        ViewData["Input"] = Convert.ToBase64String(transcation.Input).ToString();
+                        ViewData["Output"] = Convert.ToBase64String(transcation.Output).ToString();
+                        ViewData["Delegate"] = transcation.IsDelegating;
+                        ViewData["Signature"] = Convert.ToBase64String(transcation.Signature).ToString();
 
+                    }
+
+                    
                 }
                 //web api sent error response 
                 else
