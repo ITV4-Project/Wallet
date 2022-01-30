@@ -230,14 +230,16 @@ namespace WebWallet.Controllers
         [HttpPost]
         public ActionResult QR(TransactionModel transaction)
         {
+            TempData["sender"] = transaction.Input;
+            TempData["Amount"] = transaction.Amount;
 
 
             using (MemoryStream ms = new MemoryStream())
             {
-                TempData["sender"] = transaction.Input;
+                
                 QRCodeGenerator codeGenerator = new QRCodeGenerator();
                 string qrstring = "Receiver is : " + transaction.Input + "Amount: " + transaction.Amount + "Date : " + transaction.CreationTime;
-                string url = "https://10.51.20.71:7048/Import/Import";
+                string url = "https://192.168.1.101:7048/Import/Send";
                 QRCodeData codeData = codeGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
                 QRCode qr = new QRCode(codeData);
 
