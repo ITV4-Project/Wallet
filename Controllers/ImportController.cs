@@ -14,7 +14,8 @@ namespace WebWallet.Controllers
 {
     public class ImportController : Controller
     {
-       
+        List<TransactionRecord> Transactions = new List<TransactionRecord>();
+
         // GET: ImportController
         public ActionResult Index()
         {
@@ -88,11 +89,17 @@ namespace WebWallet.Controllers
 
         }
 
+  
         public ActionResult Receive()
         {
-            //to do add QR code view
             return View();
         }
+
+        public ActionResult Scan()
+        {
+            return View("Scan");
+        }
+
 
         //create transaction
         [HttpPost]
@@ -107,17 +114,17 @@ namespace WebWallet.Controllers
                 {
                     WalletModel wallet = db.Wallets.Find(item.Id);
                     transactionDto.privateKey = wallet.PrivateKey;
-                    
+
                 }
                 //using private key to sign
                 ECDsaKey key = ECDsaKey.FromPrivateKey(transactionDto.privateKey);
 
 
                 transactionDto.MerkleHash = "SlUgtuy9iKyXHYa9wyrguAO0dHIoipt0VPVEGr9vCbrunF/zrlZZ6wGkDd/aNzaXwRpmVz4gDJzLzhYNXM27Jg=="; // Testing
-                
+
                 Transaction transaction = new
                     (
-                       
+
                         merkleHash: Convert.FromBase64String(transactionDto.MerkleHash),
                         input: Convert.FromHexString(transactionDto.Input),
                         output: Convert.FromHexString(transactionDto.Output),
@@ -125,8 +132,7 @@ namespace WebWallet.Controllers
                         isDelegating: transactionDto.IsDelegating
                     );
 
-                // Dit werkt nu
-                // De transactie moet ondertekend worden met de key die bij de Input hoort. Niet een lege ECDsaKey()
+                // De transactie moet ondertekend worden met de key die bij de Input hoort. 
                 transaction.Sign(key);
 
                 //update wallet balance for sender
@@ -172,9 +178,6 @@ namespace WebWallet.Controllers
                 ModelState.AddModelError(string.Empty, "Error");
                 var startTime = DateTime.Now;
                 Console.WriteLine(JsonConvert.SerializeObject(transaction, Formatting.Indented));
-                var endTime = DateTime.Now;
-                Console.WriteLine($"Duration: {endTime - startTime}");
-
                 return View("Details");
 
 
@@ -202,6 +205,7 @@ namespace WebWallet.Controllers
                     transactions = readTask.Result;
                     foreach (var transcation in transactions)
                     {
+
                         ViewData["Version"] = transcation.Version;
                         ViewData["CreationDate"] = transcation.CreationTime;
                         ViewData["MerkleHash"] = Convert.ToBase64String(transcation.MerkleHash).ToString();
@@ -210,10 +214,17 @@ namespace WebWallet.Controllers
                         ViewData["Output"] = Convert.ToBase64String(transcation.Output).ToString();
                         ViewData["Delegate"] = transcation.IsDelegating;
                         ViewData["Signature"] = Convert.ToBase64String(transcation.Signature).ToString();
+                        Transactions.Add(transcation);
+
 
                     }
+                    foreach (var item in Transactions)
+                    {
+                        Console.WriteLine(item);
+                    }
 
-                    
+
+
                 }
                 //web api sent error response 
                 else
@@ -230,16 +241,17 @@ namespace WebWallet.Controllers
         [HttpPost]
         public ActionResult QR(TransactionModel transaction)
         {
+           
             TempData["sender"] = transaction.Input;
             TempData["Amount"] = transaction.Amount;
-
+            TempData["date"] = DateTime.Now;
 
             using (MemoryStream ms = new MemoryStream())
             {
-                
+
                 QRCodeGenerator codeGenerator = new QRCodeGenerator();
                 string qrstring = "Receiver is : " + transaction.Input + "Amount: " + transaction.Amount + "Date : " + transaction.CreationTime;
-                string url = "https://192.168.1.101:7048/Import/Send";
+                string url = "https://192.168.1.101:7048/Import/SendQR";
                 QRCodeData codeData = codeGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
                 QRCode qr = new QRCode(codeData);
 
@@ -247,16 +259,17 @@ namespace WebWallet.Controllers
                 {
                     bitmap.Save(ms, ImageFormat.Png);
                     ViewBag.QRCodeImage = "data:image/png;base64," + Convert.ToBase64String(ms.ToArray());
+                    return View("Receive");
+
                 }
 
 
             }
 
 
+            return View("Scan");
 
-            return View("Receive");
         }
-
 
     }
 }
