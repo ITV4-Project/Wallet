@@ -1,16 +1,18 @@
-﻿
+﻿@{
+   Layout = "_Layout";
+}
+
+ <div class="mb-3 ">
 
  <form action="home/click" method= "post">
-     <div class="container">
-
   
+  <img src="/css/logo.png" class="d-grid mx-auto"> 
+   
+ 
  <div class="d-grid gap-2 col-6 mx-auto">
-   <img src="/css/Logo1.png" class="rounded mx-auto d-block" width="304" height="236"> 
-  <button class="btn btn-success" value="Wallet" formaction="Wallet/Create" type="submit">Create Wallet</button>
+  <button class="btn btn-success" value="Wallet" formaction="Wallet/Create" type="submit">Create Wallet<i class="bi bi-wallet"></i> </button>
   <button class="btn btn-success" value= "importWallet" formaction="Import/Import" type="submit">Import Existing Wallet</button>
 </div>
-
-
-  
-</div>
 </form>
+
+</div>

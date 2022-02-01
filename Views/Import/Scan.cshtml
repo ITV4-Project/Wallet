@@ -3,42 +3,40 @@
 @using WebWallet.Controllers
 @using WebWallet.Models
 @{
-    var balance = TempData["Balance"];
-    var key = TempData["key"];
-    var date= TempData["Date"];
-   
-    TempData.Keep("Balance");
-    TempData.Keep("key"); 
-    TempData.Keep("Date"); 
-
+      var sender = TempData["sender"];
+    TempData.Keep("sender");
+    var date = TempData["date"];
+    TempData.Keep("date");
+     var Amount = TempData["Amount"];
+    TempData.Keep("Amount");
+    
 }
 
 
-
+ 
 <div class="container">
    
     <div class="d-grid gap-2 col-6 mx-auto">
-            <form asp-action="Generate" method="post">
+          <form method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-              <h2 class="text-center">Wallet Transaction </h2>
-                <hr />
+              <h2 class="text-center">Receive Transaction </h2>
+             <hr/>
            
-
-             <label asp-for="Input" class="control-label">Sender Public Key</label>
-            <input asp-for="Input" value=@key class="form-control" />
+         <label asp-for="Input" class="control-label">Sender Public Key</label>
+            <input asp-for="Input"  class="form-control" />
             <span asp-validation-for="Input" class="text-danger"></span>
-            
-             <label asp-for="Output" class="control-label">Reciever Public Key</label>
-            <input asp-for="Output" class="form-control" />
+
+            <label asp-for="Output" class="control-label">Reciever Public Key</label>
+            <input asp-for="Output" value=@sender class="form-control" />
             <span asp-validation-for="Output" class="text-danger"></span>
            
            
-           <label asp-for="Amount" class="control-label">Amount</label>
-            <input asp-for="Amount" class="form-control" />
+            <label asp-for="Amount" class="control-label">Amount</label>
+            <input asp-for="Amount"  value=@Amount  class="form-control" />
             <span asp-validation-for="Amount" class="text-danger"></span>
             
-           <label asp-for="CreationTime" class="control-label">Date</label>
-            <input asp-for="CreationTime" class="form-control" />
+            <label asp-for="CreationTime" class="control-label">Date</label>
+            <input asp-for="CreationTime"  value=@date class="form-control" />
             <span asp-validation-for="CreationTime" class="text-danger"></span>
             
             <br />
@@ -49,8 +47,7 @@
                     <button class="btn btn-success" formaction="CreateTransaction" type="submit">Send</button>
                 </div>
             }
-
-        </form>
+            </form>
         </div>
         
         </div>

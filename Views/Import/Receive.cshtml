@@ -3,26 +3,33 @@
 @{
     ViewData["Title"] = "Receive";
     var key = TempData["key"];
-    var Sender = TempData["sender"];
-    TempData.Keep("sender");
     TempData.Keep("key");
+      var sender = TempData["sender"];
+    TempData.Keep("sender");
+    var date = TempData["date"];
+    TempData.Keep("date");
+     var Amount = TempData["Amount"];
+    TempData.Keep("Amount");
+     //var date = ViewBag.Date;
+   //  var sender = ViewBag.sender;
+    // var Amount = ViewBag.Amount;
 }
 
 @using (Html.BeginForm("QR", "Import", FormMethod.Post)) {
 
 <h1>Generate QR Code</h1>
-
+ <form asp-action="Receive">
 <div class="container">
         <div class="row">
             <div class="col-lg-6 mb-4">
                 <div class="card">
                     <div class="card-body">
-        <form asp-action="Receive">
+       
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             
             <div class="form-group">
-                <label asp-for="CreationDate" class="control-label"></label>
-                <input asp-for="CreationDate" class="form-control" />
+                <label asp-for="CreationTime" class="control-label"></label>
+                <input asp-for="CreationTime" value=@date class="form-control" />
               
             
             </div>
@@ -45,7 +52,7 @@
                 <input type="submit" value="Receive" class="btn btn-success" />
             </div>
              
-        </form>
+       
 
         <div>
            <a asp-action="Details">Back to List</a>
@@ -57,11 +64,19 @@
 </div>
  <div class="col-lg-6 mb-4">
                 
-                    <div class="card-body">
+   <div class="card-body">
 
   @if (ViewBag.QRCodeImage != null)
             {
-                <img src="@ViewBag.QRCodeImage" alt="" style="height:300px; width:300px;">
+                       
+              <img src="@ViewBag.QRCodeImage" alt="" style="height:300px; width:300px;">
+                 @if(@sender!= null&& @Amount!=null && @date!=null){
+                                TempData.Keep("sender");      
+                                <div class="d-grid gap-2 col-6 ">
+                      <input type="submit" formaction="Scan" value="Scan" class="btn btn-success" />
+                 </div>
+                 
+                 }
             }
               
         </div>
@@ -69,5 +84,5 @@
 </div>
 </div>
 </div>
-
+</form>
 }
