@@ -29,4 +29,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/itv4projectnode:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/itv4projectwallet:latest
