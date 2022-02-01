@@ -1,6 +1,8 @@
 ﻿@model WebWallet.Models.ImportWalletModel
 @{
     ViewData["Title"] = "Import";
+    var sender = TempData["sender"];
+    TempData.Keep("sender");
 }
 
 <h1>Import Your Wallet</h1>

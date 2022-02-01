@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebWallet.Models;
 
 namespace WebWallet.Models
 {
@@ -10,6 +11,16 @@ namespace WebWallet.Models
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
-                 => options.UseSqlite(@"Data Source = D:\University books\Jaar4\project4\WebWallet\Data\Wallets.db");
+                 => options.UseSqlite(@"Data Source = C:\Users\Lenovo\source\repos\Wallet\Data\Wallets.db");
+       
+
+
+
+        public DbSet<WebWallet.Models.TransactionApi> TransactionApi { get; set; }
+       
+
+
+
+        public DbSet<WebWallet.Models.TransactionModel> TransactionModel { get; set; }
     }
 }

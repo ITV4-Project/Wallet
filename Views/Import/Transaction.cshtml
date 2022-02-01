@@ -1,0 +1,73 @@
+﻿@model WebWallet.Models.TransactionModel;
+
+
+
+@using WebWallet.Controllers
+@using WebWallet.Models
+@{
+
+    //List<WalletModel> wallets = TempData["wallets"]as List<WalletModel>;
+    var balance = TempData["Balance"];
+    var key = TempData["key"];
+    var output = TempData["Output"];
+    var date= TempData["Date"];
+    var sender = TempData["sender"];
+    TempData.Keep("sender");
+    TempData.Keep("Balance");
+    TempData.Keep("key"); 
+    TempData.Keep("Output"); 
+    TempData.Keep("Date"); 
+
+}
+
+
+
+<div class="container">
+   
+    <div class="d-grid gap-2 col-6 mx-auto">
+            <form asp-action="Generate" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+              <h2 class="text-center">Wallet Transaction </h2>
+                <hr />
+           
+
+             <label class="control-label">Sender Public Key</label>
+            <input asp-for="Input" value=@key class="form-control" />
+            <span asp-validation-for="Input" class="text-danger"></span>
+            
+             <label class="control-label">Reciever Public Key</label>
+            <input asp-for="Output" value=@sender class="form-control" />
+            <span asp-validation-for="Output" class="text-danger"></span>
+           
+           
+            <label class="control-label">Amount</label>
+            <input asp-for="Amount" class="form-control" />
+            <span asp-validation-for="Amount" class="text-danger"></span>
+            
+            <label class="control-label">Date</label>
+            <input asp-for="CreationDate" class="form-control" />
+            <span asp-validation-for="CreationDate" class="text-danger"></span>
+            
+            <br />
+            <br />
+            @using (Html.BeginForm("Import/CreateTransaction"))
+            {
+                <div class="d-grid gap-2 col-6 mx-auto">
+                    <button class="btn btn-success" formaction="CreateTransaction" type="submit">Send</button>
+                </div>
+            }
+
+        </form>
+        </div>
+        
+        </div>
+    
+
+ 
+
+
+
+
+ 
+
+

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Core;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
 using WebWallet.Models;
@@ -7,6 +8,11 @@ namespace WebWallet.Controllers
 {
     public class WalletController : Controller
     {
+      //  private ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        ECDsaKey key = new ECDsaKey();
+
+
+
         // GET: WalletController
         public ActionResult Create()
         {
@@ -28,6 +34,9 @@ namespace WebWallet.Controllers
                 UserLName = Wallet.UserLName,
                 WalletName = Wallet.WalletName,
                 PassPhrase = hash,
+                PublicKey =  key.GetPublicKey(),
+                //default balance value by creating wallet 
+                Balance = 10, 
 
             };
 
@@ -43,6 +52,9 @@ namespace WebWallet.Controllers
             return View("Create");
         }
 
+      
+        
+
         private string Hash(String hash)
         {
             //One way hash using SHA-256
@@ -54,6 +66,9 @@ namespace WebWallet.Controllers
 
         }
 
+       
+
+     
 
 
 
