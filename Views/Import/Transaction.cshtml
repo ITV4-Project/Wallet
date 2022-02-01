@@ -20,15 +20,15 @@
     <div class="d-grid gap-2 col-6 mx-auto">
             <form asp-action="Generate" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-              <h2 class="text-center">Wallet Transaction </h2>
+              <h2 class="text-center">Send transaction </h2>
                 <hr />
            
 
-             <label asp-for="Input" class="control-label">Sender Public Key</label>
+             <label asp-for="Input" class="control-label">Input</label>
             <input asp-for="Input" value=@key class="form-control" />
             <span asp-validation-for="Input" class="text-danger"></span>
             
-             <label asp-for="Output" class="control-label">Reciever Public Key</label>
+             <label asp-for="Output" class="control-label">Output</label>
             <input asp-for="Output" class="form-control" />
             <span asp-validation-for="Output" class="text-danger"></span>
            
@@ -38,7 +38,7 @@
             <span asp-validation-for="Amount" class="text-danger"></span>
             
            <label asp-for="CreationTime" class="control-label">Date</label>
-            <input asp-for="CreationTime" class="form-control" />
+            <input asp-for="CreationTime" value=@date class="form-control" />
             <span asp-validation-for="CreationTime" class="text-danger"></span>
             
             <br />

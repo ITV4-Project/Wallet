@@ -85,6 +85,8 @@ namespace WebWallet.Controllers
 
         public ActionResult Send(ImportWalletModel importWallet)
         {
+            //Date is automatically filled in with the date of creating the transaction
+            TempData["date"] = DateTime.Now;
             return View("Transaction");
 
         }
@@ -105,6 +107,7 @@ namespace WebWallet.Controllers
         [HttpPost]
         public ActionResult CreateTransaction(TransactionModel transactionDto)
         {
+            
             //using database to find the private key that related to public key
             using (var db = new ContextDB())
             {
@@ -251,7 +254,7 @@ namespace WebWallet.Controllers
 
                 QRCodeGenerator codeGenerator = new QRCodeGenerator();
                 string qrstring = "Receiver is : " + transaction.Input + "Amount: " + transaction.Amount + "Date : " + transaction.CreationTime;
-                string url = "https://192.168.1.101:7048/Import/SendQR";
+                string url = "https://192.168.1.100:7048/Import/Scan";
                 QRCodeData codeData = codeGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
                 QRCode qr = new QRCode(codeData);
 

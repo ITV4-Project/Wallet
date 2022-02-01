@@ -40,6 +40,7 @@ namespace WebWallet.Controllers
                 Balance = 10, 
 
             };
+            Console.WriteLine(key.GetPrivateKeyAsString);
 
             using (var db = new ContextDB())
             {
