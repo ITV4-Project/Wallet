@@ -5,22 +5,21 @@ namespace WebWallet.Models
 {
     public class ContextDB :DbContext
     {
-        public DbSet<WalletModel> Wallets { get; set; }
-       
+        public ContextDB() {
+            Database.EnsureCreated();
+        }
 
-
+        public DbSet<WalletModel> Wallets => Set<WalletModel>();
+        public DbSet<TransactionRecord> TransactionRecord => Set<TransactionRecord>();
+        public DbSet<TransactionModel> TransactionModel => Set<TransactionModel>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
-                 => options.UseSqlite(@"Data Source = C:\Users\Lenovo\source\repos\Wallet\Data\Wallets.db");
+                 => options.UseSqlite($"Data Source={GetLocalAppDataDatabase()}");
        
-
-
-
-        public DbSet<WebWallet.Models.TransactionApi> TransactionApi { get; set; }
-       
-
-
-
-        public DbSet<WebWallet.Models.TransactionModel> TransactionModel { get; set; }
+        public static string GetLocalAppDataDatabase() {
+            var folder = Environment.SpecialFolder.LocalApplicationData;
+            var path = Environment.GetFolderPath(folder);
+            return Path.Join(path, "wallet.db");
+        }
     }
 }

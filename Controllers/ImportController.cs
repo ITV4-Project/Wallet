@@ -14,12 +14,7 @@ namespace WebWallet.Controllers
 {
     public class ImportController : Controller
     {
-        private static readonly List<ECDsaKey> keys = new()
-        {
-            new ECDsaKey { },
-            new ECDsaKey { },
-            new ECDsaKey { }
-        };
+        List<TransactionRecord> Transactions = new List<TransactionRecord>();
 
         // GET: ImportController
         public ActionResult Index()
@@ -49,7 +44,7 @@ namespace WebWallet.Controllers
         public ActionResult ImportW(ImportWalletModel importedWallet)
         {
             var hash = Hash(importedWallet.PassWallet);
-          
+
 
 
             using (var db = new ContextDB())
@@ -68,8 +63,9 @@ namespace WebWallet.Controllers
                         return View("Details");
                     }
 
-                    
-                }else { return View("Import"); }
+
+                }
+                else { return View("Import"); }
             }
 
             return View("Import");
@@ -93,128 +89,107 @@ namespace WebWallet.Controllers
 
         }
 
+  
         public ActionResult Receive()
         {
-            //to do add QR code view
             return View();
         }
 
-        //create transaction
-        [HttpPost]
-     
-
-        public byte[] SignatureDataConvertToBytes(TransactionApi transaction)
+        public ActionResult Scan()
         {
-            byte[] vb = BitConverter.GetBytes(transaction.Version);
-            byte[] mhb = transaction.MerkleHash;
-            byte[] ob = transaction.Output;
-            byte[] ab = BitConverter.GetBytes(transaction.Amount);
-            byte[] db = BitConverter.GetBytes(transaction.Delegate);
-
-            if (!BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(vb);
-                Array.Reverse(ab);
-                Array.Reverse(db);
-            }
-
-            return vb.Concat(vb).Concat(mhb).Concat(ob).Concat(ab).Concat(db).ToArray();
+            return View("Scan");
         }
 
+
+        //create transaction
         [HttpPost]
-        public ActionResult CreateTransaction(TransactionModel transaction)
+        public ActionResult CreateTransaction(TransactionModel transactionDto)
         {
-            ECDsaKey key = new ECDsaKey();
-            //Console.WriteLine(keys.ElementAt(0).GetPublicKey());
-
-            TransactionApi transactionToSign = new TransactionApi
-            {
-                Version = transaction.Version != null ? transaction.Version : 1,
-                Name = transaction.Name != null ? transaction.Name : "Bob",
-                MerkleHash = Encoding.ASCII.GetBytes("t4or5p62SBIIvb6hKNxl/6pXt+7wsRwLQTUeq0O1Unmzu6XGWo+oI8g7QAECFY2DxkVlfmYus9Rc79MgV9XvGg=="),//testing
-                Input = Convert.FromHexString(transaction.Input),
-                Amount = transaction.Amount,
-                Output = Convert.FromHexString(transaction.Output),
-                Delegate = transaction.Delegate != null ? transaction.Delegate : false,
-             
-
-
-            };
-            TransactionApi convertedTransaction = new TransactionApi
-            {
-                Id = Guid.NewGuid(),
-                Version = 1,
-                CreationDate = DateTimeOffset.UtcNow,
-                Name = transaction.Name != null ? transaction.Name : "Bob",
-                MerkleHash = Encoding.ASCII.GetBytes("t4or5p62SBIIvb6hKNxl/6pXt+7wsRwLQTUeq0O1Unmzu6XGWo+oI8g7QAECFY2DxkVlfmYus9Rc79MgV9XvGg=="), //testing
-                Input = Convert.FromHexString(transaction.Input),
-                Amount = transaction.Amount,
-                Output = Convert.FromHexString(transaction.Output),
-                Delegate = transaction.Delegate != null ? transaction.Delegate : true,
-                Signature = key.Sign(SignatureDataConvertToBytes(transactionToSign))
-
-
-            };
-
+            //using database to find the private key that related to public key
             using (var db = new ContextDB())
             {
+                //using database to find the private key that related to public key
+                var privateKey = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transactionDto.Input)).ToList();
+                foreach (var item in privateKey)
+                {
+                    WalletModel wallet = db.Wallets.Find(item.Id);
+                    transactionDto.privateKey = wallet.PrivateKey;
+
+                }
+                //using private key to sign
+                ECDsaKey key = ECDsaKey.FromPrivateKey(transactionDto.privateKey);
+
+
+                transactionDto.MerkleHash = "SlUgtuy9iKyXHYa9wyrguAO0dHIoipt0VPVEGr9vCbrunF/zrlZZ6wGkDd/aNzaXwRpmVz4gDJzLzhYNXM27Jg=="; // Testing
+
+                Transaction transaction = new
+                    (
+
+                        merkleHash: Convert.FromBase64String(transactionDto.MerkleHash),
+                        input: Convert.FromHexString(transactionDto.Input),
+                        output: Convert.FromHexString(transactionDto.Output),
+                        amount: transactionDto.Amount,
+                        isDelegating: transactionDto.IsDelegating
+                    );
+
+                // De transactie moet ondertekend worden met de key die bij de Input hoort. 
+                transaction.Sign(key);
+
                 //update wallet balance for sender
-                var balanceSender = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Input));
+                var balanceSender = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transactionDto.Input));
                 if (balanceSender != null)
                 {
                     foreach (var item in balanceSender)
                     {
                         WalletModel wallet = db.Wallets.Find(item.Id);
-                        wallet.Balance = wallet.Balance - transaction.Amount;
+                        wallet.Balance = wallet.Balance - transactionDto.Amount;
                         TempData["Balance"] = wallet.Balance;
                     }
                     db.SaveChanges();
 
                 }
                 // update wallet balance for reciver 
-                var balanceReciever = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transaction.Output));
+                var balanceReciever = db.Wallets.Select(a => a).Where(a => a.PublicKey.Equals(transactionDto.Output));
                 if (balanceReciever != null)
                 {
                     foreach (var item in balanceReciever)
                     {
                         WalletModel wallet = db.Wallets.Find(item.Id);
-                        wallet.Balance = wallet.Balance + transaction.Amount;
+                        wallet.Balance = wallet.Balance + transactionDto.Amount;
                     }
                     db.SaveChanges();
 
                 }
+
+
+                //Post Transaction to Api
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri("https://localhost:7157/transactions");
+                    //HTTP POST
+                    var postTask = client.PostAsJsonAsync("transactions", transaction);
+                    postTask.Wait();
+
+                    var result = postTask.Result;
+                    if (result.IsSuccessStatusCode)
+                        return RedirectToAction("Details");
+
+                }
+                ModelState.AddModelError(string.Empty, "Error");
+                var startTime = DateTime.Now;
+                Console.WriteLine(JsonConvert.SerializeObject(transaction, Formatting.Indented));
+                return View("Details");
+
+
             }
-
-            //Post Transaction to Api
-            using (var client = new HttpClient())
-            {
-                client.BaseAddress = new Uri("https://localhost:7157/transactions");
-                //HTTP POST
-                var postTask = client.PostAsJsonAsync<TransactionApi>("transactions", convertedTransaction);
-                postTask.Wait();
-
-                var result = postTask.Result;
-                if (result.IsSuccessStatusCode)
-                    return RedirectToAction("Details");
-
-            }
-            ModelState.AddModelError(string.Empty, "Error");
-            var startTime = DateTime.Now;
-            Console.WriteLine(JsonConvert.SerializeObject(convertedTransaction, Formatting.Indented));
-            var endTime = DateTime.Now;
-            Console.WriteLine($"Duration: {endTime - startTime}");
-
-            return View("Details");
-
         }
 
 
         //Get transaction 
-       [HttpGet]
         public ActionResult GetTransaction()
         {
-      
-            IEnumerable<TransactionApi> transactions = null;
+
+            IEnumerable<TransactionRecord> transactions = null;
             using (var client = new HttpClient())
             {
                 client.BaseAddress = new Uri("https://localhost:7157/");
@@ -225,15 +200,36 @@ namespace WebWallet.Controllers
                 var result = responseTask.Result;
                 if (result.IsSuccessStatusCode)
                 {
-                    var readTask = result.Content.ReadFromJsonAsync<IList<TransactionApi>>();
+                    var readTask = result.Content.ReadFromJsonAsync<IList<TransactionRecord>>();
                     readTask.Wait();
                     transactions = readTask.Result;
+                    foreach (var transcation in transactions)
+                    {
+
+                        ViewData["Version"] = transcation.Version;
+                        ViewData["CreationDate"] = transcation.CreationTime;
+                        ViewData["MerkleHash"] = Convert.ToBase64String(transcation.MerkleHash).ToString();
+                        ViewData["Amount"] = transcation.Amount;
+                        ViewData["Input"] = Convert.ToBase64String(transcation.Input).ToString();
+                        ViewData["Output"] = Convert.ToBase64String(transcation.Output).ToString();
+                        ViewData["Delegate"] = transcation.IsDelegating;
+                        ViewData["Signature"] = Convert.ToBase64String(transcation.Signature).ToString();
+                        Transactions.Add(transcation);
+
+
+                    }
+                    foreach (var item in Transactions)
+                    {
+                        Console.WriteLine(item);
+                    }
+
+
 
                 }
                 //web api sent error response 
                 else
                 {
-                    transactions = Enumerable.Empty<TransactionApi>();
+                    transactions = Enumerable.Empty<TransactionRecord>();
                     ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
                 }
 
@@ -245,14 +241,17 @@ namespace WebWallet.Controllers
         [HttpPost]
         public ActionResult QR(TransactionModel transaction)
         {
-
+           
+            TempData["sender"] = transaction.Input;
+            TempData["Amount"] = transaction.Amount;
+            TempData["date"] = DateTime.Now;
 
             using (MemoryStream ms = new MemoryStream())
             {
-                TempData["sender"] = transaction.Input;
+
                 QRCodeGenerator codeGenerator = new QRCodeGenerator();
-                string qrstring = "Receiver is : " + transaction.Input + "Amount: " + transaction.Amount + "Date : " + transaction.CreationDate;
-                string url = "https://10.51.20.71:7048/Import/Import";
+                string qrstring = "Receiver is : " + transaction.Input + "Amount: " + transaction.Amount + "Date : " + transaction.CreationTime;
+                string url = "https://192.168.1.101:7048/Import/SendQR";
                 QRCodeData codeData = codeGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
                 QRCode qr = new QRCode(codeData);
 
@@ -260,16 +259,17 @@ namespace WebWallet.Controllers
                 {
                     bitmap.Save(ms, ImageFormat.Png);
                     ViewBag.QRCodeImage = "data:image/png;base64," + Convert.ToBase64String(ms.ToArray());
+                    return View("Receive");
+
                 }
 
-                
+
             }
 
 
+            return View("Scan");
 
-            return View("Receive");
         }
-
 
     }
 }
