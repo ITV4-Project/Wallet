@@ -6,6 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>AnyCPU;ARM64</Platforms>
     <Configurations>Debug;Release;New;Test</Configurations>
+    <UserSecretsId>340aa770-50a3-475a-b7b3-d74fd1413045</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +20,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="6.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.1" />
     <PackageReference Include="QRCoder" Version="1.4.2" />
     <PackageReference Include="System.Web.Helpers.Crypto" Version="3.2.3" />
